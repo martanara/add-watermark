@@ -1,0 +1,13 @@
+{
+  "name": "add-watermark",
+  "version": "y",
+  "description": "add watermark app",
+  "main": "y",
+  "repository": "y",
+  "author": "y",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "6.5.0",
+    "jimp": "0.6.4"
+  }
+}
