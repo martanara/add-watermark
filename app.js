@@ -40,54 +40,64 @@ const startApp = async () => {
 
   // Ask if user is ready
 
-  const answer = await inquirer.prompt([{
-    name: 'start',
-    message: 'Hi! Welcome to "Watermark manager". Copy your image files to `\img` folder. Then you\'ll be able to use them in the app. Are you ready?',
-    type: 'confirm',
-  }]);
-
-  // if answer is no, just quit the app
-  if(!answer.start) process.exit();
-
-  // ask about input file and watermark type
-
-  const options = await inquirer.prompt([{
-    name: 'inputImage',
-    type: 'input',
-    message: 'What file do you want to mark?',
-    default: 'test.jpg',
-  },
-  {
-    name: 'watermarkType',
-    type: 'list',
-    choices: ['Text watermark', 'Image watermark'],
-  }]);
-
-  if (!fs.existsSync('./img/' + options.inputImage)) {
-    process.stdout.write('\nFile doesn\'t exist\n\n');
-    process.exit();
-  }
-
-  if(options.watermarkType === 'Text watermark') {
-    const text = await inquirer.prompt([{
-      name: 'value',
-      type: 'input',
-      message: 'Type your watermark text:',
-    }])
-    options.watermarkText = text.value;
-    addTextWatermarkToImage('./img/' + options.inputImage, './watermark-with-text-img/' + prepareOutputFilename(options.inputImage), options.watermarkText);
-  }
-  else {
-    const image = await inquirer.prompt([{
-      name: 'filename',
-      type: 'input',
-      message: 'Type your watermark name:',
-      default: 'logo.png',
+  try {
+    const answer = await inquirer.prompt([{
+      name: 'start',
+      message: 'Hi! Welcome to "Watermark manager". Copy your image files to `\img` folder. Then you\'ll be able to use them in the app. Are you ready?',
+      type: 'confirm',
     }]);
-    options.watermarkImage = image.filename;
-    addImageWatermarkToImage('./img/' + options.inputImage, './watermark-with-image-img/' + prepareOutputFilename(options.inputImage), './logos/' + options.watermarkImage);
-  }
 
+    // if answer is no, just quit the app
+    if(!answer.start) process.exit();
+
+    // ask about input file and watermark type
+
+    const file = await inquirer.prompt([{
+      name: 'inputImage',
+      type: 'input',
+      message: 'What file do you want to mark?',
+      default: 'test.jpg',
+    }]);
+
+    if (!fs.existsSync('./img/' + file.inputImage)) {
+      process.stdout.write('\nFile doesn\'t exist\n\n. Please try again');
+      process.exit();
+    }
+
+    const options = await inquirer.prompt([{
+      name: 'watermarkType',
+      type: 'list',
+      choices: ['Text watermark', 'Image watermark'],
+    }]);
+
+    if(options.watermarkType === 'Text watermark') {
+      const text = await inquirer.prompt([{
+        name: 'value',
+        type: 'input',
+        message: 'Type your watermark text:',
+      }])
+      options.watermarkText = text.value;
+      addTextWatermarkToImage('./img/' +file.inputImage, './watermark-with-text-img/' + prepareOutputFilename(file.inputImage), options.watermarkText);
+    }
+    else {
+      const image = await inquirer.prompt([{
+        name: 'filename',
+        type: 'input',
+        message: 'Type your watermark name:',
+        default: 'logo.png',
+      }]);
+      options.watermarkImage = image.filename;
+      addImageWatermarkToImage('./img/' + file.inputImage, './watermark-with-image-img/' + prepareOutputFilename(file.inputImage), './logos/' + options.watermarkImage);
+    }
+  } 
+  catch (error) {
+    process.stdout.write('\nSomething went wrong. Try again!\n\n');
+    process.exit();
+  } 
+  finally {
+    process.stdout.write('\nSuccess! Watermark was applied to your file.\n\n');
+    startApp();
+  }
 }
 
 startApp();
