@@ -33,9 +33,33 @@ const startApp = async () => {
     await image.quality(100).writeAsync(outputFile);
   }
 
-  const prepareOutputFilename = filename => {
+  const prepareOutputFilename = (filename) => {
     const [ name, ext ] = filename.split('.')
     return `${name}` + `-with-watermark.` + `${ext}`;
+  };
+
+  const makeImageBrighter = async function(inputFile) {
+    const image = await Jimp.read(inputFile);
+    image.brightness(0.2);
+    await image.quality(100).writeAsync(inputFile);
+  };
+
+  const increaseContrast = async function(inputFile) {
+    const image = await Jimp.read(inputFile);
+    image.contrast(0.3);
+    await image.quality(100).writeAsync(inputFile);
+  };
+
+  const makeImageBlackAndWhite = async function(inputFile) {
+    const image = await Jimp.read(inputFile);
+    image.greyscale();
+    await image.quality(100).writeAsync(inputFile);
+  };
+
+  const invertImage = async function(inputFile) {
+    const image = await Jimp.read(inputFile);
+    image.invert(); 
+    await image.quality(100).writeAsync(inputFile);
   };
 
   // Ask if user is ready
@@ -64,8 +88,41 @@ const startApp = async () => {
       process.exit();
     }
 
+    for (n = 1; ; n++) {
+      const answerModification = await inquirer.prompt([{
+        name: 'willModify',
+        message: 'Would you like to modify your file?',
+        type: 'confirm',
+      }]);
+
+      if (answerModification.willModify) {
+          const modificationOptions = await inquirer.prompt([{
+            name: 'modificationType',
+            type: 'list',
+            choices: ['Make image brighter', 'Increase contrast', 'Make image b&w', 'Invert image']
+          }])
+    
+          if (modificationOptions.modificationType === 'Make image brighter'){
+            makeImageBrighter('./img/' + file.inputImage, './img/' + prepareOutputFilename(file.inputImage));
+            process.stdout.write('\nSuccess! Modification was applied\n\n');
+          } else if (modificationOptions.modificationType === 'Increase contrast'){
+            increaseContrast('./img/' + file.inputImage, './img/' + prepareOutputFilename(file.inputImage));
+            process.stdout.write('\nSuccess! Modification was applied\n\n');
+          } else if (modificationOptions.modificationType === 'Make image b&w'){
+            makeImageBlackAndWhite('./img/' + file.inputImage, './img/' + prepareOutputFilename(file.inputImage));
+            process.stdout.write('\nSuccess! Modification was applied\n\n');
+          } else {
+            invertImage('./img/' + file.inputImage, './img/' + prepareOutputFilename(file.inputImage));
+            process.stdout.write('\nSuccess! Modification was applied\n\n');
+          }
+      } else {
+        break;
+      }
+    }
+
     const options = await inquirer.prompt([{
       name: 'watermarkType',
+      message: 'Which type of watermark?',
       type: 'list',
       choices: ['Text watermark', 'Image watermark'],
     }]);
